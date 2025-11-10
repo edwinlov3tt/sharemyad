@@ -1,0 +1,111 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-11-09",
+  "sources": {
+    "iab": "https://www.iab.com/wp-content/uploads/2019/04/IABNewAdPortfolio_LW_FixedSizeSpec.pdf",
+    "google": "https://support.google.com/google-ads/answer/1722096",
+    "meta": "https://www.facebook.com/business/help/103816146375741",
+    "tiktok": "https://ads.tiktok.com/help/article?aid=9552"
+  },
+  "standards": {
+    "display": {
+      "iab": [
+        {
+          "width": 300,
+          "height": 250,
+          "name": "Medium Rectangle",
+          "maxSizeKB": 200,
+          "category": "display"
+        },
+        {
+          "width": 728,
+          "height": 90,
+          "name": "Leaderboard",
+          "maxSizeKB": 200,
+          "category": "display"
+        },
+        {
+          "width": 320,
+          "height": 50,
+          "name": "Mobile Banner",
+          "maxSizeKB": 100,
+          "category": "display"
+        },
+        {
+          "width": 160,
+          "height": 600,
+          "name": "Wide Skyscraper",
+          "maxSizeKB": 200,
+          "category": "display"
+        },
+        {
+          "width": 970,
+          "height": 250,
+          "name": "Billboard",
+          "maxSizeKB": 200,
+          "category": "display"
+        }
+      ]
+    },
+    "social": {
+      "meta": [
+        {
+          "width": 1200,
+          "height": 628,
+          "name": "Facebook Link Post",
+          "maxSizeKB": 8192,
+          "category": "social"
+        },
+        {
+          "width": 1080,
+          "height": 1080,
+          "name": "Instagram Square",
+          "maxSizeKB": 30720,
+          "category": "social"
+        },
+        {
+          "width": 1080,
+          "height": 1350,
+          "name": "Instagram Portrait",
+          "maxSizeKB": 30720,
+          "category": "social"
+        }
+      ],
+      "tiktok": [
+        {
+          "width": 1080,
+          "height": 1920,
+          "name": "TikTok Video Portrait",
+          "maxSizeKB": 512000,
+          "category": "social",
+          "aspectRatio": "9:16"
+        },
+        {
+          "width": 1920,
+          "height": 1080,
+          "name": "TikTok Video Landscape",
+          "maxSizeKB": 512000,
+          "category": "social",
+          "aspectRatio": "16:9"
+        }
+      ]
+    },
+    "video": {
+      "google": [
+        {
+          "width": 1920,
+          "height": 1080,
+          "name": "YouTube In-Stream",
+          "maxSizeKB": 1024000,
+          "maxDurationSeconds": 60,
+          "category": "video"
+        }
+      ]
+    }
+  },
+  "fallback": {
+    "allowNonStandard": true,
+    "maxFileSizeKB": 512000,
+    "validationLevel": "warning"
+  }
+}

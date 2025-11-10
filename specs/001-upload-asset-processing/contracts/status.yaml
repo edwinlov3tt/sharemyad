@@ -1,0 +1,341 @@
+openapi: 3.0.3
+info:
+  title: Status API
+  description: Retrieves processing status and progress for upload sessions
+  version: 1.0.0
+
+paths:
+  /api/status/{sessionId}:
+    get:
+      summary: Get processing status
+      description: |
+        Retrieves current processing status, progress, and results for an upload session.
+        Use for polling or initial state recovery. For real-time updates, subscribe to
+        Supabase Realtime channel returned from POST /api/process.
+      operationId: getProcessingStatus
+      tags:
+        - Status
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: Upload session ID
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+        - name: includeAssets
+          in: query
+          required: false
+          description: Include full asset details in response
+          schema:
+            type: boolean
+            default: false
+          example: true
+      responses:
+        '200':
+          description: Status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - sessionId
+                  - status
+                  - progress
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                    description: Upload session identifier
+                    example: 550e8400-e29b-41d4-a716-446655440000
+                  status:
+                    type: string
+                    enum:
+                      - pending
+                      - uploading
+                      - processing
+                      - completed
+                      - failed
+                    description: Current session status
+                    example: processing
+                  progress:
+                    type: object
+                    required:
+                      - overall
+                    properties:
+                      overall:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                        description: Overall progress percentage
+                        example: 45
+                      currentStep:
+                        type: string
+                        description: Current processing step
+                        example: Extracting files... 45/100
+                      estimatedTimeRemaining:
+                        type: integer
+                        description: Estimated seconds until completion
+                        example: 30
+                  jobs:
+                    type: array
+                    description: Processing jobs for this session
+                    items:
+                      type: object
+                      required:
+                        - jobId
+                        - jobType
+                        - status
+                        - progress
+                      properties:
+                        jobId:
+                          type: string
+                          format: uuid
+                          description: Job identifier
+                          example: 660e8400-e29b-41d4-a716-446655440000
+                        jobType:
+                          type: string
+                          enum:
+                            - extraction
+                            - thumbnail_generation
+                            - validation
+                            - malware_scan
+                          description: Job type
+                          example: extraction
+                        status:
+                          type: string
+                          enum: [queued, processing, completed, failed]
+                          description: Job status
+                          example: processing
+                        progress:
+                          type: integer
+                          minimum: 0
+                          maximum: 100
+                          description: Job progress percentage
+                          example: 45
+                        currentFileIndex:
+                          type: integer
+                          description: Current file being processed
+                          example: 45
+                        totalFiles:
+                          type: integer
+                          description: Total files to process
+                          example: 100
+                        startedAt:
+                          type: string
+                          format: date-time
+                          description: Job start timestamp
+                          example: '2025-11-09T20:00:00Z'
+                        completedAt:
+                          type: string
+                          format: date-time
+                          description: Job completion timestamp (if completed)
+                          example: '2025-11-09T20:05:30Z'
+                        error:
+                          type: object
+                          description: Error details (if failed)
+                          properties:
+                            message:
+                              type: string
+                              description: Error message
+                              example: Corrupted archive at file 45
+                            fileIndex:
+                              type: integer
+                              description: File index where error occurred
+                              example: 45
+                  creativeSets:
+                    type: array
+                    description: Detected creative sets (if processing complete)
+                    items:
+                      type: object
+                      required:
+                        - setId
+                        - setName
+                        - assetCount
+                      properties:
+                        setId:
+                          type: string
+                          format: uuid
+                          description: Creative set identifier
+                          example: 770e8400-e29b-41d4-a716-446655440000
+                        setName:
+                          type: string
+                          description: Set name (e.g., "Set-A", "Version-1")
+                          example: Set-A
+                        assetCount:
+                          type: integer
+                          description: Number of assets in set
+                          example: 15
+                        originalFolderPath:
+                          type: string
+                          description: Original folder path from zip
+                          example: Campaign/Set-A
+                  assets:
+                    type: array
+                    description: Creative assets (only if includeAssets=true)
+                    items:
+                      type: object
+                      required:
+                        - assetId
+                        - filename
+                        - mimeType
+                        - sizeBytes
+                      properties:
+                        assetId:
+                          type: string
+                          format: uuid
+                          description: Asset identifier
+                          example: 880e8400-e29b-41d4-a716-446655440000
+                        filename:
+                          type: string
+                          description: Sanitized filename
+                          example: banner-300x250.jpg
+                        filenameOriginal:
+                          type: string
+                          description: Original filename
+                          example: banner#300x250!.jpg
+                        mimeType:
+                          type: string
+                          description: File MIME type
+                          example: image/jpeg
+                        fileType:
+                          type: string
+                          enum: [image, video, html5]
+                          description: Asset type category
+                          example: image
+                        sizeBytes:
+                          type: integer
+                          description: File size in bytes
+                          example: 51200
+                        dimensions:
+                          type: object
+                          description: Asset dimensions (if applicable)
+                          properties:
+                            width:
+                              type: integer
+                              example: 300
+                            height:
+                              type: integer
+                              example: 250
+                        duration:
+                          type: number
+                          format: float
+                          description: Video duration in seconds (if video)
+                          example: 30.5
+                        thumbnailUrl:
+                          type: string
+                          format: uri
+                          description: Thumbnail URL (if generated)
+                          example: https://r2.sharemyad.com/thumbnails/880e8400-...jpg
+                        storageUrl:
+                          type: string
+                          format: uri
+                          description: Asset URL in R2 storage
+                          example: https://r2.sharemyad.com/assets/880e8400-...jpg
+                        validationStatus:
+                          type: string
+                          enum: [pending, valid, warning, invalid]
+                          description: Validation result
+                          example: valid
+                        validationNotes:
+                          type: string
+                          description: Validation details
+                          example: Standard IAB Medium Rectangle (300x250)
+                  totalFiles:
+                    type: integer
+                    description: Total files in session
+                    example: 100
+                  totalSizeBytes:
+                    type: integer
+                    description: Total size in bytes
+                    example: 5120000
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Session creation timestamp
+                    example: '2025-11-09T19:50:00Z'
+                  completedAt:
+                    type: string
+                    format: date-time
+                    description: Session completion timestamp (if completed)
+                    example: '2025-11-09T20:10:00Z'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Invalid session ID format
+                code: INVALID_SESSION_ID
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Authentication required
+                code: UNAUTHORIZED
+        '403':
+          description: Forbidden (session belongs to different user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: You do not have access to this upload session
+                code: FORBIDDEN
+        '404':
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Upload session not found
+                code: SESSION_NOT_FOUND
+                details:
+                  sessionId: 550e8400-e29b-41d4-a716-446655440000
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Failed to retrieve status
+                code: INTERNAL_ERROR
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth JWT token
+
+tags:
+  - name: Status
+    description: Processing status operations

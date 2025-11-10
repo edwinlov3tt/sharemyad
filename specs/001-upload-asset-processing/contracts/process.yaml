@@ -1,0 +1,184 @@
+openapi: 3.0.3
+info:
+  title: Process API
+  description: Triggers background processing for uploaded files (zip extraction, thumbnail generation, validation)
+  version: 1.0.0
+
+paths:
+  /api/process/{sessionId}:
+    post:
+      summary: Start processing uploaded files
+      description: |
+        Initiates background processing for an upload session. Processing includes:
+        - Zip extraction (if applicable)
+        - Creative set detection
+        - Thumbnail generation
+        - File validation
+        - Malware scanning
+        - Transfer to long-term storage (R2)
+      operationId: startProcessing
+      tags:
+        - Processing
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: Upload session ID returned from POST /api/upload
+          schema:
+            type: string
+            format: uuid
+          example: 550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Processing started successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - sessionId
+                  - status
+                  - jobs
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                    description: Upload session identifier
+                    example: 550e8400-e29b-41d4-a716-446655440000
+                  status:
+                    type: string
+                    enum: [processing]
+                    description: Current session status
+                    example: processing
+                  jobs:
+                    type: array
+                    description: Processing jobs created
+                    items:
+                      type: object
+                      required:
+                        - jobId
+                        - jobType
+                        - status
+                      properties:
+                        jobId:
+                          type: string
+                          format: uuid
+                          description: Unique job identifier
+                          example: 660e8400-e29b-41d4-a716-446655440000
+                        jobType:
+                          type: string
+                          enum:
+                            - extraction
+                            - thumbnail_generation
+                            - validation
+                            - malware_scan
+                          description: Type of processing job
+                          example: extraction
+                        status:
+                          type: string
+                          enum: [queued, processing]
+                          description: Current job status
+                          example: queued
+                        estimatedDuration:
+                          type: integer
+                          description: Estimated duration in seconds
+                          example: 30
+                  statusUrl:
+                    type: string
+                    format: uri
+                    description: URL to poll for processing status
+                    example: /api/status/550e8400-e29b-41d4-a716-446655440000
+                  realtimeChannel:
+                    type: string
+                    description: Supabase Realtime channel name for live updates
+                    example: job:550e8400-e29b-41d4-a716-446655440000
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                sessionNotFound:
+                  summary: Session not found
+                  value:
+                    error: Upload session not found
+                    code: SESSION_NOT_FOUND
+                    details:
+                      sessionId: 550e8400-e29b-41d4-a716-446655440000
+                alreadyProcessing:
+                  summary: Already processing
+                  value:
+                    error: Session is already being processed
+                    code: ALREADY_PROCESSING
+                    details:
+                      sessionId: 550e8400-e29b-41d4-a716-446655440000
+                      currentStatus: processing
+                uploadNotComplete:
+                  summary: Upload not complete
+                  value:
+                    error: Upload not yet complete
+                    code: UPLOAD_INCOMPLETE
+                    details:
+                      sessionId: 550e8400-e29b-41d4-a716-446655440000
+                      uploadedBytes: 100000
+                      totalBytes: 500000
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Authentication required
+                code: UNAUTHORIZED
+        '403':
+          description: Forbidden (session belongs to different user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: You do not have access to this upload session
+                code: FORBIDDEN
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Failed to start processing
+                code: INTERNAL_ERROR
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth JWT token
+
+tags:
+  - name: Processing
+    description: Background processing operations

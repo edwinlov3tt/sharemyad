@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: Upload API
+  description: Initiates file upload and returns signed URL for direct upload to Supabase Storage
+  version: 1.0.0
+
+paths:
+  /api/upload:
+    post:
+      summary: Initialize upload session
+      description: |
+        Creates a new upload session and returns a signed URL for direct file upload to Supabase Storage.
+        Supports single files, multiple files, and zip archives up to 500MB.
+      operationId: initializeUpload
+      tags:
+        - Upload
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sessionType
+                - files
+              properties:
+                sessionType:
+                  type: string
+                  enum: [single, multiple, zip]
+                  description: Type of upload session
+                  example: single
+                files:
+                  type: array
+                  description: Array of files to upload
+                  minItems: 1
+                  maxItems: 500
+                  items:
+                    type: object
+                    required:
+                      - filename
+                      - mimeType
+                      - sizeBytes
+                    properties:
+                      filename:
+                        type: string
+                        maxLength: 255
+                        description: Original filename
+                        example: banner-300x250.jpg
+                      mimeType:
+                        type: string
+                        enum:
+                          - image/jpeg
+                          - image/png
+                          - image/gif
+                          - video/mp4
+                          - video/webm
+                          - text/html
+                          - application/zip
+                        description: File MIME type
+                        example: image/jpeg
+                      sizeBytes:
+                        type: integer
+                        minimum: 1
+                        maximum: 524288000
+                        description: File size in bytes (max 500MB)
+                        example: 51200
+      responses:
+        '200':
+          description: Upload session created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - sessionId
+                  - uploadUrls
+                  - expiresAt
+                properties:
+                  sessionId:
+                    type: string
+                    format: uuid
+                    description: Unique upload session identifier
+                    example: 550e8400-e29b-41d4-a716-446655440000
+                  uploadUrls:
+                    type: array
+                    description: Signed URLs for direct upload to Supabase Storage
+                    items:
+                      type: object
+                      required:
+                        - filename
+                        - signedUrl
+                        - storagePath
+                      properties:
+                        filename:
+                          type: string
+                          description: Original filename
+                          example: banner-300x250.jpg
+                        signedUrl:
+                          type: string
+                          format: uri
+                          description: Signed upload URL (valid for 1 hour)
+                          example: https://storage.supabase.co/v1/upload/signed/...
+                        storagePath:
+                          type: string
+                          description: Storage path for reference
+                          example: temp-uploads/550e8400-e29b-41d4-a716-446655440000/banner-300x250.jpg
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: URL expiration timestamp (1 hour from creation)
+                    example: '2025-11-09T21:00:00Z'
+                  totalSizeBytes:
+                    type: integer
+                    description: Total size of all files in bytes
+                    example: 51200
+                  totalFiles:
+                    type: integer
+                    description: Total number of files
+                    example: 1
+        '400':
+          description: Invalid request (validation failed)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                fileTooLarge:
+                  summary: File exceeds size limit
+                  value:
+                    error: File exceeds maximum size of 500MB
+                    code: FILE_TOO_LARGE
+                    details:
+                      filename: large-video.mp4
+                      sizeBytes: 600000000
+                      maxSizeBytes: 524288000
+                tooManyFiles:
+                  summary: Too many files
+                  value:
+                    error: Maximum 500 files per upload
+                    code: TOO_MANY_FILES
+                    details:
+                      fileCount: 600
+                      maxFiles: 500
+                invalidMimeType:
+                  summary: Unsupported file type
+                  value:
+                    error: Unsupported file type
+                    code: INVALID_MIME_TYPE
+                    details:
+                      filename: document.pdf
+                      mimeType: application/pdf
+                      allowedTypes:
+                        - image/jpeg
+                        - image/png
+                        - image/gif
+                        - video/mp4
+                        - video/webm
+                        - text/html
+                        - application/zip
+        '401':
+          description: Unauthorized (missing or invalid authentication)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Authentication required
+                code: UNAUTHORIZED
+        '429':
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Rate limit exceeded (100 requests per minute)
+                code: RATE_LIMIT_EXCEEDED
+                details:
+                  retryAfter: 45
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              example:
+                error: Failed to create upload session
+                code: INTERNAL_ERROR
+
+components:
+  schemas:
+    Error:
+      type: object
+      required:
+        - error
+        - code
+      properties:
+        error:
+          type: string
+          description: Human-readable error message
+        code:
+          type: string
+          description: Machine-readable error code
+        details:
+          type: object
+          description: Additional error context
+          additionalProperties: true
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase Auth JWT token
+
+tags:
+  - name: Upload
+    description: File upload operations
