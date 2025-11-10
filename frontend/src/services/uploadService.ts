@@ -38,25 +38,36 @@ export interface UploadMultipleFilesResult {
 
 /**
  * Create upload session in database
- * MVP: Anonymous uploads allowed (no authentication required)
+ * Phase 8 (T123): Support for both authenticated and anonymous uploads
  */
 export async function createUploadSession(
   sessionType: 'single' | 'multiple' | 'zip',
   totalFiles: number,
   totalSizeBytes: number
 ): Promise<UploadSession> {
-  // MVP: Use anonymous user ID (all zeros UUID)
-  const anonymousUserId = '00000000-0000-0000-0000-000000000000'
+  // Check if user is authenticated
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // Build session data with anonymous support
+  const sessionData: any = {
+    session_type: sessionType,
+    total_files: totalFiles,
+    total_size_bytes: totalSizeBytes,
+    status: 'pending',
+    is_anonymous: !user,
+  }
+
+  // Only add user_id if user is authenticated
+  if (user) {
+    sessionData.user_id = user.id
+  } else {
+    // Anonymous session: set expiration to 7 days from now
+    sessionData.expires_at = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  }
 
   const { data, error } = await supabase
     .from('upload_sessions')
-    .insert({
-      user_id: anonymousUserId,
-      session_type: sessionType,
-      total_files: totalFiles,
-      total_size_bytes: totalSizeBytes,
-      status: 'pending',
-    })
+    .insert(sessionData)
     .select('*')
     .single()
 

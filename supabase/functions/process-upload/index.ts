@@ -1,5 +1,6 @@
 // Process uploaded file: validate, extract metadata, move to R2
 // User Story 3: Extended for zip extraction with creative sets
+// Phase 8: Added malware scanning and security headers
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { moveToR2 } from '../shared/storage.ts'
@@ -7,6 +8,7 @@ import { getSupabaseClient, handleDatabaseError } from '../shared/database.ts'
 import { extractZip, validateZip, detectHTML5Bundle, groupFilesByFolder } from './zipExtractor.ts'
 import { detectCreativeSets } from './creativeSetDetector.ts'
 import { buildFolderHierarchy, flattenHierarchy, storeFolderStructure } from './folderStructureManager.ts'
+import { scanFile, scanZipArchive, logSecurityEvent } from './malwareScanner.ts'
 
 interface ProcessUploadRequest {
   sessionId: string
@@ -199,14 +201,26 @@ function getMimeTypeFromFilename(filename: string): string {
   return mimeTypes[ext] || 'application/octet-stream'
 }
 
+/**
+ * Security headers for all responses
+ * Phase 8 (T122): HTTPS, HSTS, XSS protection
+ */
+const SECURITY_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'X-Content-Type-Options': 'nosniff',
+  'X-Frame-Options': 'DENY',
+  'X-XSS-Protection': '1; mode=block',
+  'Content-Security-Policy': "default-src 'self'; script-src 'self'; object-src 'none';",
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+}
+
 serve(async (req) => {
-  // CORS headers
+  // CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-      },
+      headers: SECURITY_HEADERS,
     })
   }
 
@@ -293,6 +307,75 @@ serve(async (req) => {
     // Server-side dimension extraction would require image processing libraries
     // This will be enhanced in future iterations
 
+    // Phase 8 (T119-T120): Malware scanning before processing
+    // Download file from Supabase Storage for scanning
+    const { data: fileData, error: downloadError } = await supabase.storage
+      .from('temp-uploads')
+      .download(storagePath)
+
+    if (downloadError || !fileData) {
+      logSecurityEvent('scan_error', {
+        filename,
+        uploadSessionId: sessionId,
+        threat: 'Failed to download file for scanning',
+      })
+      return new Response(
+        JSON.stringify({
+          error: 'Failed to retrieve file for processing',
+          code: 'DOWNLOAD_ERROR',
+        }),
+        {
+          status: 500,
+          headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    const fileBuffer = await fileData.arrayBuffer()
+
+    // Scan for malware (T119-T120)
+    let scanResult
+    if (mimeType === 'application/zip') {
+      // Scan zip archives for password protection and malware (T121)
+      scanResult = await scanZipArchive(fileBuffer, filename)
+    } else {
+      // Scan regular files
+      scanResult = await scanFile(fileBuffer, filename, mimeType)
+    }
+
+    if (!scanResult.safe) {
+      // Log security event
+      logSecurityEvent('scan_blocked', {
+        filename,
+        uploadSessionId: sessionId,
+        threat: scanResult.threat,
+        severity: scanResult.severity,
+      })
+
+      // Delete the malicious file from storage
+      await supabase.storage.from('temp-uploads').remove([storagePath])
+
+      // Return error response with security headers
+      return new Response(
+        JSON.stringify({
+          error: 'File blocked by security scan',
+          code: 'MALWARE_DETECTED',
+          threat: scanResult.threat,
+          details: scanResult.details,
+        }),
+        {
+          status: 403,
+          headers: { ...SECURITY_HEADERS, 'Content-Type': 'application/json' },
+        }
+      )
+    }
+
+    // Log successful scan
+    logSecurityEvent('scan_passed', {
+      filename,
+      uploadSessionId: sessionId,
+    })
+
     // Sanitize filename
     const sanitizedFilename = sanitizeFilename(filename)
 
@@ -343,7 +426,7 @@ serve(async (req) => {
       return handleDatabaseError(assetError || new Error('Failed to create asset record'))
     }
 
-    // Return success response
+    // Return success response with security headers
     return new Response(
       JSON.stringify({
         asset: {
@@ -368,8 +451,8 @@ serve(async (req) => {
       {
         status: 200,
         headers: {
+          ...SECURITY_HEADERS,
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         },
       }
     )
@@ -384,8 +467,8 @@ serve(async (req) => {
       {
         status: 500,
         headers: {
+          ...SECURITY_HEADERS,
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*',
         },
       }
     )
