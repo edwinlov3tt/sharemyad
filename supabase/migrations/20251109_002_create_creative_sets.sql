@@ -1,5 +1,5 @@
 CREATE TABLE creative_sets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   upload_session_id UUID NOT NULL REFERENCES upload_sessions(id) ON DELETE CASCADE,
   set_name VARCHAR(255) NOT NULL,
   original_folder_path TEXT,

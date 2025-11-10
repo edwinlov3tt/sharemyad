@@ -2,7 +2,7 @@ CREATE TYPE job_type AS ENUM ('extraction', 'thumbnail_generation', 'validation'
 CREATE TYPE job_status AS ENUM ('queued', 'processing', 'completed', 'failed');
 
 CREATE TABLE processing_jobs (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   upload_session_id UUID NOT NULL REFERENCES upload_sessions(id) ON DELETE CASCADE,
   job_type job_type NOT NULL,
   status job_status NOT NULL DEFAULT 'queued',

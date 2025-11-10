@@ -1,5 +1,5 @@
 CREATE TABLE thumbnails (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creative_asset_id UUID NOT NULL UNIQUE REFERENCES creative_assets(id) ON DELETE CASCADE,
   thumbnail_url TEXT NOT NULL,
   width INTEGER NOT NULL DEFAULT 300,

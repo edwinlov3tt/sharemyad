@@ -2,7 +2,7 @@ CREATE TYPE file_type AS ENUM ('image', 'video', 'html5');
 CREATE TYPE validation_status AS ENUM ('pending', 'valid', 'warning', 'invalid');
 
 CREATE TABLE creative_assets (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creative_set_id UUID NOT NULL REFERENCES creative_sets(id) ON DELETE CASCADE,
   filename_original VARCHAR(255) NOT NULL,
   filename_sanitized VARCHAR(255) NOT NULL,

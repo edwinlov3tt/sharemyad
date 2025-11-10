@@ -1,5 +1,5 @@
 CREATE TABLE folder_structure (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   creative_set_id UUID NOT NULL REFERENCES creative_sets(id) ON DELETE CASCADE,
   folder_name VARCHAR(255) NOT NULL,
   parent_folder_id UUID REFERENCES folder_structure(id) ON DELETE CASCADE,

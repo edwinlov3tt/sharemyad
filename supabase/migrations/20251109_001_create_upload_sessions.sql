@@ -1,10 +1,11 @@
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Use PostgreSQL's built-in gen_random_uuid() (available in PG 13+)
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 CREATE TYPE session_type AS ENUM ('single', 'multiple', 'zip');
 CREATE TYPE session_status AS ENUM ('pending', 'uploading', 'processing', 'completed', 'failed');
 
 CREATE TABLE upload_sessions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
   session_type session_type NOT NULL,
   total_files INTEGER NOT NULL DEFAULT 0,
