@@ -14,6 +14,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Hosting**: Vercel (frontend) + Supabase (backend)
 - **Processing**: Edge functions for zip extraction/validation
 
+### Supabase Database Configuration
+
+**CRITICAL**: This project uses ONE database only. Do NOT use any other Supabase project.
+
+**Project**: ShareMyAd
+**Project Reference ID**: `gnurilaiddffxfjujegu`
+**Region**: us-east-2
+**Supabase URL**: `https://gnurilaiddffxfjujegu.supabase.co`
+**Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdudXJpbGFpZGRmZnhmanVqZWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDk3MzksImV4cCI6MjA3ODMyNTczOX0.FSjyDjyxSBzDT6vUYGhgwJ946noSbeUkXIvuTlYoSYw`
+
+**Environment Variables**:
+```
+REACT_APP_SUPABASE_URL=https://gnurilaiddffxfjujegu.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdudXJpbGFpZGRmZnhmanVqZWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDk3MzksImV4cCI6MjA3ODMyNTczOX0.FSjyDjyxSBzDT6vUYGhgwJ946noSbeUkXIvuTlYoSYw
+```
+
+**CLI Commands**: Always use `--project-ref gnurilaiddffxfjujegu` or ensure project is linked with `supabase link --project-ref gnurilaiddffxfjujegu`
+
 ## Architecture
 
 ### Data Hierarchy
