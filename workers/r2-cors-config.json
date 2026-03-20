@@ -1,0 +1,29 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://sharemyad.com",
+          "https://*.sharemyad.com",
+          "http://localhost:5173",
+          "http://localhost:3000",
+          "http://localhost:3001"
+        ],
+        "methods": ["PUT", "GET", "HEAD", "DELETE"],
+        "headers": [
+          "Content-Type",
+          "Content-Length",
+          "Content-MD5",
+          "x-amz-*",
+          "X-Amz-*"
+        ]
+      },
+      "exposedHeaders": [
+        "ETag",
+        "Content-Length",
+        "x-amz-request-id"
+      ],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

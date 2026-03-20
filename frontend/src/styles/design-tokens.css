@@ -1,0 +1,115 @@
+/* SiteRevision Design System Tokens — Light Theme */
+/* Source: /site-revision/public/DESIGN_SYSTEM.html (Rayum v2.0) */
+
+:root {
+  /* Font */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Typography Scale */
+  --text-display: 56px;
+  --text-h1: 40px;
+  --text-h2: 32px;
+  --text-h3: 24px;
+  --text-h4: 20px;
+  --text-h5: 16px;
+  --text-body-lg: 16px;
+  --text-body: 14px;
+  --text-body-sm: 13px;
+  --text-caption: 12px;
+  --text-overline: 11px;
+  --text-micro: 10px;
+
+  /* Font Weights */
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+  --weight-extrabold: 800;
+  --weight-black: 900;
+
+  /* Backgrounds */
+  --bg-default: #ffffff;
+  --bg-muted: #f6f7f9;
+  --bg-overlay: #ffffff;
+  --bg-inverse: #181d25;
+  --bg-neutral-muted: #e1e5ea;
+  --bg-neutral-emphasis: #c3ced7;
+  --bg-brand-primary: #70fc8e;
+  --bg-brand-secondary: #3765f6;
+  --bg-white: #ffffff;
+
+  /* Foreground */
+  --fg-default: #0a0d11;
+  --fg-muted: #606e80;
+
+  /* Borders */
+  --border-default: #e1e5ea;
+  --border-muted: #c3ced7;
+  --border-muted-input: #dfe4ea;
+  --border-overlay: rgba(146, 159, 177, 0.12);
+  --border-brand-primary: #70fc8e;
+  --border-brand-secondary: #3765f6;
+
+  /* Actions */
+  --action-bg-primary: #181d25;
+
+  /* Brand */
+  --brand-green: #70fc8e;
+  --brand-blue: #3765f6;
+
+  /* Semantic Status */
+  --status-success: #22c55e;
+  --status-warning: #f59e0b;
+  --status-error: #ef4444;
+  --status-info: #3765f6;
+
+  /* Component Tokens */
+  --button-radius: 24px;
+  --card-radius: 12px;
+  --card-padding: 20px;
+  --card-border: 1px;
+  --input-radius: 24px;
+  --input-border: 1px;
+  --icon-md: 20px;
+  --button-lg-h: 48px;
+  --radius-full: 99999px;
+  --radius-100: 4px;
+
+  /* Spacing (4px base) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Shadows */
+  --shadow-widget: 0px 5px 1.5px -4px rgba(8, 8, 8, 0.09), 0px 6px 4px -4px rgba(8, 8, 8, 0.05);
+  --shadow-depth: 0px 2.15px 0.5px -2px rgba(0, 0, 0, 0.25), 0px 24px 24px -16px rgba(8, 8, 8, 0.04), 0px 6px 13px 0px rgba(8, 8, 8, 0.03), 0px 6px 4px -4px rgba(8, 8, 8, 0.05), 0px 5px 1.5px -4px rgba(8, 8, 8, 0.09);
+  --shadow-dropdown: 0px 0px 10px 0px rgba(0, 0, 0, 0.05), 0px 2.15px 0.5px -2px rgba(0, 0, 0, 0.25), 0px 24px 24px -16px rgba(8, 8, 8, 0.04), 0px 6px 13px 0px rgba(8, 8, 8, 0.03), 0px 6px 4px -4px rgba(8, 8, 8, 0.05), 0px 5px 1.5px -4px rgba(8, 8, 8, 0.09);
+
+  /* Transitions */
+  --transition-fast: 100ms ease;
+  --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 300ms ease;
+}
+
+/* Animations */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}

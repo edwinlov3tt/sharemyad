@@ -1,0 +1,41 @@
+name = "sharemyad-presign"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[vars]
+ENVIRONMENT = "development"
+MAX_FILE_SIZE = "524288000"  # 500MB in bytes
+ALLOWED_ORIGINS = "http://localhost:5173,http://localhost:3000,http://localhost:3001"
+
+# R2 bucket binding
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "sharemyad"
+
+# KV namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "1d0f82f16d974774b2d3fa4c263c623e"
+
+# D1 database binding
+[[d1_databases]]
+binding = "DB"
+database_name = "sharemyad-db"
+database_id = "25aa4a09-4c53-4249-8c80-b2fc816a7d8e"
+
+# Environment-specific configuration
+[env.production]
+vars = { ENVIRONMENT = "production", ALLOWED_ORIGINS = "https://sharemyad.com,https://www.sharemyad.com" }
+
+[[env.production.d1_databases]]
+binding = "DB"
+database_name = "sharemyad-db"
+database_id = "25aa4a09-4c53-4249-8c80-b2fc816a7d8e"
+
+[env.staging]
+vars = { ENVIRONMENT = "staging", ALLOWED_ORIGINS = "https://staging.sharemyad.com" }
+
+[[env.staging.d1_databases]]
+binding = "DB"
+database_name = "sharemyad-db"
+database_id = "25aa4a09-4c53-4249-8c80-b2fc816a7d8e"

@@ -8,28 +8,24 @@ import {
   getSessionAssets,
 } from '../services/uploadService'
 import { validateFile } from '../services/validationService'
+import { isZipFile, extractZip } from '../services/zipService'
 import type { UploadSession } from '../types/upload.types'
 import type { CreativeAsset } from '../types/asset.types'
 import type { ValidationResult } from '../types/asset.types'
 
 export interface UploadState {
   progress: number
-  status: 'idle' | 'validating' | 'uploading' | 'processing' | 'completed' | 'error'
+  status: 'idle' | 'validating' | 'uploading' | 'extracting' | 'processing' | 'completed' | 'error'
   validationResults?: ValidationResult[]
   error?: Error
 }
 
 export interface UseFileUploadResult {
-  // Upload state
   uploadState: UploadState
   session: UploadSession | null
   assets: CreativeAsset[]
-
-  // Actions
   upload: (file: File) => Promise<void>
   reset: () => void
-
-  // Loading states
   isUploading: boolean
   isValidating: boolean
   isError: boolean
@@ -37,7 +33,6 @@ export interface UseFileUploadResult {
 
 /**
  * Hook for handling single file upload with validation and progress tracking
- * Integrates with TanStack Query for caching and optimistic updates
  */
 export function useFileUpload(): UseFileUploadResult {
   const queryClient = useQueryClient()
@@ -47,7 +42,6 @@ export function useFileUpload(): UseFileUploadResult {
   })
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
-  // Query to fetch upload session details
   const {
     data: session = null,
     isLoading: isLoadingSession,
@@ -57,17 +51,14 @@ export function useFileUpload(): UseFileUploadResult {
     enabled: !!currentSessionId,
   })
 
-  // Query to fetch assets for current session
   const { data: assets = [] } = useQuery({
     queryKey: ['sessionAssets', currentSessionId],
     queryFn: () => (currentSessionId ? getSessionAssets(currentSessionId) : []),
     enabled: !!currentSessionId,
   })
 
-  // Mutation for uploading files
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
-      // Step 1: Validation
       setUploadState({ progress: 0, status: 'validating' })
       const validation = await validateFile(file)
 
@@ -84,7 +75,6 @@ export function useFileUpload(): UseFileUploadResult {
         validationResults: validation.results,
       })
 
-      // Step 2: Upload
       const result = await uploadSingleFile({
         file,
         onProgress: (progress) => {
@@ -101,17 +91,11 @@ export function useFileUpload(): UseFileUploadResult {
     onSuccess: (data) => {
       setCurrentSessionId(data.session.id)
       setUploadState({ progress: 100, status: 'completed' })
-
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['uploadSession', data.session.id] })
       queryClient.invalidateQueries({ queryKey: ['sessionAssets', data.session.id] })
     },
     onError: (error: Error) => {
-      setUploadState({
-        progress: 0,
-        status: 'error',
-        error,
-      })
+      setUploadState({ progress: 0, status: 'error', error })
     },
   })
 
@@ -138,8 +122,7 @@ export function useFileUpload(): UseFileUploadResult {
 }
 
 /**
- * User Story 2 (T060): Hook for multiple file upload with aggregate progress tracking
- * Supports concurrent uploads with individual file status tracking
+ * Multiple file upload with zip extraction support
  */
 export interface MultipleUploadState extends UploadState {
   filesStatus: Map<
@@ -153,19 +136,15 @@ export interface MultipleUploadState extends UploadState {
   completedCount: number
   errorCount: number
   totalFiles: number
+  creativeSets?: string[]
 }
 
 export interface UseMultipleFileUploadResult {
-  // Upload state
   uploadState: MultipleUploadState
   session: UploadSession | null
   assets: CreativeAsset[]
-
-  // Actions
   upload: (files: File[]) => Promise<void>
   reset: () => void
-
-  // Loading states
   isUploading: boolean
   isValidating: boolean
   isError: boolean
@@ -183,7 +162,6 @@ export function useMultipleFileUpload(): UseMultipleFileUploadResult {
   })
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null)
 
-  // Query to fetch upload session details
   const {
     data: session = null,
     isLoading: isLoadingSession,
@@ -193,19 +171,53 @@ export function useMultipleFileUpload(): UseMultipleFileUploadResult {
     enabled: !!currentSessionId,
   })
 
-  // Query to fetch assets for current session
   const { data: assets = [] } = useQuery({
     queryKey: ['sessionAssets', currentSessionId],
     queryFn: () => (currentSessionId ? getSessionAssets(currentSessionId) : []),
     enabled: !!currentSessionId,
   })
 
-  // Mutation for uploading multiple files
   const uploadMutation = useMutation({
-    mutationFn: async (files: File[]) => {
-      // Initialize state for all files
+    mutationFn: async (inputFiles: File[]) => {
+      let filesToUpload: File[] = []
+      let detectedSets: string[] = []
+
+      // Check if any file is a zip — if so, extract it
+      const zipFiles = inputFiles.filter(isZipFile)
+      const regularFiles = inputFiles.filter((f) => !isZipFile(f))
+
+      if (zipFiles.length > 0) {
+        setUploadState((prev) => ({
+          ...prev,
+          progress: 0,
+          status: 'extracting',
+          filesStatus: new Map(),
+          completedCount: 0,
+          errorCount: 0,
+          totalFiles: 0,
+        }))
+
+        // Extract all zip files
+        for (const zip of zipFiles) {
+          const result = await extractZip(zip)
+          filesToUpload.push(...result.files.map((f) => f.file))
+          detectedSets.push(...result.creativeSets)
+        }
+      }
+
+      // Add regular (non-zip) files
+      filesToUpload.push(...regularFiles)
+
+      if (filesToUpload.length === 0) {
+        throw new Error('No valid files found in the uploaded zip')
+      }
+
+      // Deduplicate creative sets
+      detectedSets = [...new Set(detectedSets)]
+
+      // Initialize state for all extracted files
       const filesStatus = new Map(
-        files.map((file) => [
+        filesToUpload.map((file) => [
           file.name,
           { status: 'pending' as const, progress: 0 },
         ])
@@ -217,12 +229,13 @@ export function useMultipleFileUpload(): UseMultipleFileUploadResult {
         filesStatus,
         completedCount: 0,
         errorCount: 0,
-        totalFiles: files.length,
+        totalFiles: filesToUpload.length,
+        creativeSets: detectedSets.length > 0 ? detectedSets : undefined,
       })
 
-      // Upload with callbacks for progress tracking
+      // Upload all extracted files
       const result = await uploadMultipleFiles({
-        files,
+        files: filesToUpload,
         onProgress: (aggregateProgress) => {
           setUploadState((prev) => ({
             ...prev,
@@ -232,25 +245,14 @@ export function useMultipleFileUpload(): UseMultipleFileUploadResult {
         onFileStart: (filename) => {
           setUploadState((prev) => {
             const newFilesStatus = new Map(prev.filesStatus)
-            newFilesStatus.set(filename, {
-              status: 'uploading',
-              progress: 0,
-            })
-
-            return {
-              ...prev,
-              filesStatus: newFilesStatus,
-            }
+            newFilesStatus.set(filename, { status: 'uploading', progress: 0 })
+            return { ...prev, filesStatus: newFilesStatus }
           })
         },
-        onFileComplete: (filename, asset) => {
+        onFileComplete: (filename, _asset) => {
           setUploadState((prev) => {
             const newFilesStatus = new Map(prev.filesStatus)
-            newFilesStatus.set(filename, {
-              status: 'completed',
-              progress: 100,
-            })
-
+            newFilesStatus.set(filename, { status: 'completed', progress: 100 })
             return {
               ...prev,
               filesStatus: newFilesStatus,
@@ -261,12 +263,7 @@ export function useMultipleFileUpload(): UseMultipleFileUploadResult {
         onFileError: (filename, error) => {
           setUploadState((prev) => {
             const newFilesStatus = new Map(prev.filesStatus)
-            newFilesStatus.set(filename, {
-              status: 'error',
-              progress: 0,
-              error,
-            })
-
+            newFilesStatus.set(filename, { status: 'error', progress: 0, error })
             return {
               ...prev,
               filesStatus: newFilesStatus,
@@ -287,8 +284,6 @@ export function useMultipleFileUpload(): UseMultipleFileUploadResult {
         progress: 100,
         status: data.errors.length === 0 ? 'completed' : 'error',
       }))
-
-      // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['uploadSession', data.session.id] })
       queryClient.invalidateQueries({ queryKey: ['sessionAssets', data.session.id] })
     },

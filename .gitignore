@@ -24,7 +24,6 @@ out/
 *.swp
 *.swo
 *~
-.DS_Store
 
 # Testing
 coverage/
@@ -40,8 +39,8 @@ logs/
 .cache/
 .temp/
 
-# Supabase
-.supabase/
+# Cloudflare
+.wrangler/
 
 # TypeScript
 *.tsbuildinfo
@@ -49,5 +48,3 @@ logs/
 # OS
 Thumbs.db
 .DS_Store
-
-CLAUDE.mdCLAUDE.md

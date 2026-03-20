@@ -1,6 +1,7 @@
 // Creative Asset Types
 export type FileType = 'image' | 'video' | 'html5'
 export type ValidationStatus = 'pending' | 'valid' | 'warning' | 'invalid'
+export type StorageProvider = 'r2'
 
 export interface CreativeAsset {
   id: string
@@ -19,6 +20,11 @@ export interface CreativeAsset {
   validationStatus: ValidationStatus
   validationNotes: string | null
   isHtml5Bundle: boolean
+  // R2 Storage fields (Feature 002-r2-storage-migration)
+  storageProvider: StorageProvider
+  r2Key: string | null           // R2 object key (e.g., "assets/session-123/file.jpg")
+  r2Etag: string | null          // R2 ETag for integrity verification
+  migratedAt: string | null      // Timestamp when asset was migrated to R2
 }
 
 export interface CreativeSet {

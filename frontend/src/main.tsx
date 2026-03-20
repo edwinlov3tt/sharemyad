@@ -1,6 +1,16 @@
 // Entry point for ShareMyAd frontend
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { RuntimeScope } from '@runtimescope/sdk'
+
+RuntimeScope.connect({
+  appName: 'sharemyad',
+  serverUrl: 'ws://localhost:9090',
+  captureNetwork: true,
+  captureConsole: true,
+  capturePerformance: true,
+  captureRenders: true,
+})
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
 import './index.css'

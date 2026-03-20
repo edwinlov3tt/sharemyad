@@ -7,7 +7,7 @@
  * From: specs/001-upload-asset-processing/tasks.md (T112)
  */
 
-import React, { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useThumbnailCache } from '../../hooks/useThumbnailCache'
 
 interface VideoPreviewProps {
@@ -74,7 +74,7 @@ interface VideoPreviewProps {
 export function VideoPreview({
   assetId,
   thumbnailUrl,
-  videoUrl,
+  videoUrl: _videoUrl, // Reserved for future video modal
   filename,
   duration,
   dimensions,
@@ -82,6 +82,8 @@ export function VideoPreview({
   showDuration = true,
   ariaLabel,
 }: VideoPreviewProps): JSX.Element {
+  // videoUrl reserved for future video modal implementation
+  void _videoUrl
   const containerRef = useRef<HTMLDivElement>(null)
   const [isHovering, setIsHovering] = useState(false)
 
@@ -342,7 +344,7 @@ export function VideoPlayerModal({
 }: VideoPlayerModalProps): JSX.Element | null {
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isOpen) return
 
     const handleEscape = (e: KeyboardEvent) => {

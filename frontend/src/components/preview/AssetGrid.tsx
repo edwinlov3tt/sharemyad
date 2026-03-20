@@ -1,5 +1,5 @@
 // Asset grid component for displaying multiple assets
-import React from 'react'
+import { useMemo } from 'react'
 import { AssetCard } from './AssetCard'
 import type { CreativeAsset } from '../../types/asset.types'
 
@@ -29,14 +29,14 @@ export function AssetGrid({
   isLoading = false,
   loadingCount = 0,
   filterBySetId,
-  showSetIndicator = false,
+  // showSetIndicator can be used in future for set indicators
 }: AssetGridProps): JSX.Element {
   // Filter assets by creative set if filterBySetId is provided
-  const filteredAssets = React.useMemo(() => {
+  const filteredAssets = useMemo(() => {
     if (!filterBySetId) {
       return assets
     }
-    return assets.filter(asset => asset.creative_set_id === filterBySetId)
+    return assets.filter(asset => asset.creativeSetId === filterBySetId)
   }, [assets, filterBySetId])
   // Show skeleton loading state while assets are being uploaded
   if (isLoading && assets.length === 0 && loadingCount > 0) {

@@ -1,0 +1,155 @@
+import { useState } from 'react'
+import { tokens } from '../../config/designTokens'
+import { useWorkspace } from '../../context/WorkspaceContext'
+import type { Folder } from '../../types/workspace.types'
+
+const t = tokens
+
+function FolderItem({ folder, depth = 0 }: { folder: Folder; depth?: number }) {
+  const { selectedFolderId, selectFolder } = useWorkspace()
+  const [expanded, setExpanded] = useState(true)
+  const isSelected = selectedFolderId === folder.id
+  const hasChildren = folder.children.length > 0
+
+  return (
+    <div>
+      <button
+        onClick={() => selectFolder(isSelected ? null : folder.id)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          width: '100%',
+          padding: `5px 10px 5px ${10 + depth * 18}px`,
+          background: isSelected ? t.color.brandBlue + '0a' : 'transparent',
+          border: 'none',
+          borderRadius: 6,
+          cursor: 'pointer',
+          fontSize: t.text.bodySm,
+          fontWeight: isSelected ? t.weight.semibold : t.weight.medium,
+          color: isSelected ? t.color.brandBlue : t.color.fgMuted,
+          textAlign: 'left',
+          transition: `all ${t.transition.base}`,
+          borderLeft: isSelected ? `2px solid ${t.color.brandBlue}` : '2px solid transparent',
+        }}
+        onMouseEnter={e => {
+          if (!isSelected) {
+            e.currentTarget.style.background = t.color.bgMuted
+            e.currentTarget.style.color = t.color.fgDefault
+          }
+        }}
+        onMouseLeave={e => {
+          if (!isSelected) {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = t.color.fgMuted
+          }
+        }}
+      >
+        {hasChildren && (
+          <span
+            onClick={(e) => { e.stopPropagation(); setExpanded(!expanded) }}
+            style={{
+              display: 'inline-flex',
+              transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)',
+              transition: `transform ${t.transition.fast}`,
+              cursor: 'pointer',
+              flexShrink: 0,
+              color: t.color.fgMuted,
+            }}
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M3 1.5L7 5L3 8.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        )}
+        {!hasChildren && <span style={{ width: 10, flexShrink: 0 }} />}
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.45 }}>
+          <path d="M2 4C2 3.44772 2.44772 3 3 3H6.5L8 5H13C13.5523 5 14 5.44772 14 6V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V4Z" stroke="currentColor" strokeWidth="1.2" fill="none" />
+        </svg>
+        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {folder.name}
+        </span>
+      </button>
+      {hasChildren && expanded && (
+        <div>
+          {folder.children.map(child => (
+            <FolderItem key={child.id} folder={child} depth={depth + 1} />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+export function FolderSidebar() {
+  const { folders } = useWorkspace()
+
+  return (
+    <aside
+      style={{
+        width: 200,
+        minWidth: 200,
+        height: '100%',
+        background: t.color.bgDefault,
+        borderRight: `1px solid ${t.color.borderDefault}`,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Section label */}
+      <div
+        style={{
+          padding: `${t.space[4]}px ${t.space[4]}px ${t.space[2]}px`,
+          fontSize: t.text.overline,
+          fontWeight: t.weight.semibold,
+          color: t.color.fgMuted,
+          textTransform: 'uppercase',
+          letterSpacing: '0.8px',
+        }}
+      >
+        Folders
+      </div>
+
+      {/* Folder tree */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: `0 ${t.space[2]}px` }}>
+        {folders.map(folder => (
+          <FolderItem key={folder.id} folder={folder} />
+        ))}
+      </div>
+
+      {/* Labels section */}
+      <div
+        style={{
+          padding: `${t.space[3]}px ${t.space[4]}px`,
+          borderTop: `1px solid ${t.color.borderDefault}`,
+        }}
+      >
+        <button
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            background: 'none',
+            border: 'none',
+            color: t.color.fgMuted,
+            fontSize: t.text.overline,
+            fontWeight: t.weight.semibold,
+            cursor: 'pointer',
+            padding: 0,
+            textTransform: 'uppercase',
+            letterSpacing: '0.8px',
+            transition: `color ${t.transition.base}`,
+          }}
+          onMouseEnter={e => { e.currentTarget.style.color = t.color.fgDefault }}
+          onMouseLeave={e => { e.currentTarget.style.color = t.color.fgMuted }}
+        >
+          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1V11M1 6H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+          Labels
+        </button>
+      </div>
+    </aside>
+  )
+}

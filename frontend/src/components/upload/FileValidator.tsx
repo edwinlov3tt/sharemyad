@@ -1,5 +1,4 @@
 // File validator with traffic light feedback (green/yellow/red)
-import React from 'react'
 import type { ValidationResult, ValidationStatus } from '../../types/asset.types'
 
 export interface FileValidatorProps {

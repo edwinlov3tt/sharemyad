@@ -1,49 +1,39 @@
 // Asset card component with thumbnail and validation status
-import React, { useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { CreativeAsset } from '../../types/asset.types'
-import { useThumbnailCache } from '../../hooks/useThumbnailCache'
+import { useR2AssetUrl } from '../../hooks/useThumbnailCache'
 
 export interface AssetCardProps {
   asset: CreativeAsset
   onClick?: () => void
-  /**
-   * Thumbnail URL (300x180 JPEG)
-   * If not provided, falls back to tempStorageUrl or storageUrl
-   */
   thumbnailUrl?: string
-  /**
-   * Whether to enable lazy loading (default: true)
-   */
   lazyLoad?: boolean
 }
 
 /**
  * Asset card component with thumbnail display and validation status indicator
- * Constitution Principle I: Simplicity Through Progressive Disclosure
- * Constitution Principle V: Accessibility as Default
  *
- * Features (User Story 5):
- * - Lazy-loaded thumbnails (IntersectionObserver)
+ * Features:
+ * - Lazy-loaded thumbnails via R2 presigned URLs (IntersectionObserver)
  * - GIF animation on hover
- * - Video thumbnail with play icon (via VideoPreview)
+ * - Video thumbnail with play icon
  * - 60 FPS smooth scroll performance
  */
 export function AssetCard({ asset, onClick, thumbnailUrl, lazyLoad = true }: AssetCardProps): JSX.Element {
   const cardRef = useRef<HTMLDivElement>(null)
-  const [isHovering, setIsHovering] = useState(false)
+  const fallbackUrl = thumbnailUrl || asset.tempStorageUrl || asset.storageUrl
 
-  // Determine if this is a GIF
-  const isGIF = asset.mimeType === 'image/gif'
-
-  // Use thumbnail URL if provided, otherwise fall back to storage URL
-  const imageUrl = thumbnailUrl || asset.tempStorageUrl || asset.storageUrl
-
-  // Lazy load thumbnail (only if lazyLoad enabled)
-  const { isVisible, isLoaded } = useThumbnailCache(
+  const { isVisible, isLoaded, isFetching, url } = useR2AssetUrl(
     cardRef,
-    imageUrl,
-    { eager: !lazyLoad }
+    asset.id,
+    {
+      eager: !lazyLoad,
+      urlType: 'thumbnail',
+      fallbackUrl,
+    }
   )
+
+  const imageUrl = url || fallbackUrl
 
   const statusConfig = {
     valid: {
@@ -104,14 +94,12 @@ export function AssetCard({ asset, onClick, thumbnailUrl, lazyLoad = true }: Ass
       tabIndex={onClick ? 0 : undefined}
       aria-label={`${asset.filenameOriginal} - ${config.label}`}
       onMouseEnter={(e) => {
-        setIsHovering(true)
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(-2px)'
           e.currentTarget.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'
         }
       }}
       onMouseLeave={(e) => {
-        setIsHovering(false)
         if (onClick) {
           e.currentTarget.style.transform = 'translateY(0)'
           e.currentTarget.style.boxShadow = 'none'
@@ -131,7 +119,7 @@ export function AssetCard({ asset, onClick, thumbnailUrl, lazyLoad = true }: Ass
         {asset.fileType === 'image' && isVisible && (
           <>
             <img
-              src={isGIF && isHovering ? (asset.storageUrl || asset.tempStorageUrl) : imageUrl}
+              src={imageUrl}
               alt={asset.filenameOriginal}
               data-testid="thumbnail-image"
               style={{
@@ -145,7 +133,7 @@ export function AssetCard({ asset, onClick, thumbnailUrl, lazyLoad = true }: Ass
                 transition: 'opacity 0.3s ease-in-out',
               }}
             />
-            {!isLoaded && (
+            {(!isLoaded || isFetching) && (
               <div
                 style={{
                   position: 'absolute',

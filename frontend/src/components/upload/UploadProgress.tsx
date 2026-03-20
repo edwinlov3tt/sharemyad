@@ -1,12 +1,11 @@
 // Upload progress indicator with percentage display
 // User Story 4 (T091, T092): Extended with current step, estimated time, and ARIA live regions
-import React from 'react'
 import { ProgressBar } from '../shared/LoadingSpinner'
 import type { ProcessingProgress } from '../../types/processing.types'
 
 export interface UploadProgressProps {
   progress: number // 0-100
-  status: 'idle' | 'validating' | 'uploading' | 'processing' | 'completed' | 'error'
+  status: 'idle' | 'validating' | 'uploading' | 'extracting' | 'processing' | 'completed' | 'error'
   filename?: string
   error?: Error
   /** User Story 4: Real-time processing progress */
@@ -18,6 +17,7 @@ export interface UploadProgressProps {
 const STATUS_LABELS: Record<string, string> = {
   idle: 'Ready to upload',
   validating: 'Validating file...',
+  extracting: 'Extracting zip contents...',
   uploading: 'Uploading',
   processing: 'Processing file...',
   completed: 'Upload complete',
@@ -128,7 +128,7 @@ export function UploadProgress({
       )}
 
       {/* Status Message */}
-      {status === 'validating' && (
+      {(status === 'validating' || status === 'extracting') && (
         <div
           style={{
             display: 'flex',

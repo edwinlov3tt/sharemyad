@@ -1,0 +1,15 @@
+{
+  "rules": [
+    {
+      "id": "cleanup-incomplete-uploads",
+      "enabled": true,
+      "conditions": {
+        "prefix": "temp-uploads/"
+      },
+      "actions": {
+        "deleteAfterDays": 1
+      }
+    }
+  ],
+  "_instructions": "Apply this lifecycle configuration to the R2 bucket 'sharemyad-assets' via Cloudflare Dashboard. This automatically deletes incomplete uploads in the temp-uploads/ prefix after 24 hours."
+}

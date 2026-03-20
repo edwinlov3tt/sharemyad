@@ -198,7 +198,7 @@ export function validateDimensions(
   width: number,
   height: number,
   fileSizeKB: number,
-  fileType: FileType
+  _fileType: FileType // Reserved for format-specific validation
 ): ValidationResult {
   // Collect all standards into a flat array
   const allStandards: ValidationStandard[] = []

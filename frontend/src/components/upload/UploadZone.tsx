@@ -1,5 +1,5 @@
 // Drag-and-drop upload zone with file picker
-import React, { useCallback } from 'react'
+import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 
 export interface UploadZoneProps {
@@ -94,7 +94,7 @@ export function UploadZone({
         }
       }}
     >
-      <input {...getInputProps()} aria-label="File input" />
+      <input {...getInputProps()} aria-label="File input" tabIndex={-1} aria-hidden="true" />
 
       <div
         style={{
@@ -193,6 +193,29 @@ export function UploadZone({
             {errorMessage}
           </p>
         )}
+
+        {/* Screen reader status announcer */}
+        <span
+          role="status"
+          aria-live="polite"
+          style={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            padding: 0,
+            margin: '-1px',
+            overflow: 'hidden',
+            clip: 'rect(0, 0, 0, 0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        >
+          {isDragActive
+            ? isDragReject
+              ? 'File type not supported. Drop canceled.'
+              : 'File detected. Drop to upload.'
+            : 'Ready to receive files'}
+        </span>
       </div>
     </div>
   )

@@ -1,0 +1,25 @@
+{
+  "name": "sharemyad-workers",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cloudflare Workers for ShareMyAd R2 storage operations",
+  "scripts": {
+    "dev:presign": "cd presign && wrangler dev",
+    "dev:asset-proxy": "cd asset-proxy && wrangler dev",
+    "dev:migration": "cd migration && wrangler dev",
+    "deploy:presign": "cd presign && wrangler deploy",
+    "deploy:asset-proxy": "cd asset-proxy && wrangler deploy",
+    "deploy:migration": "cd migration && wrangler deploy",
+    "deploy:all": "npm run deploy:presign && npm run deploy:asset-proxy && npm run deploy:migration",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.450.0",
+    "@aws-sdk/s3-request-presigner": "^3.450.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20240117.0",
+    "typescript": "^5.3.0",
+    "wrangler": "^3.22.0"
+  }
+}

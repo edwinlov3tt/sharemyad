@@ -9,7 +9,7 @@
  * - Asset count badges per set
  */
 
-import React, { useState, useEffect, useRef, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, KeyboardEvent } from 'react'
 
 /**
  * Creative set information
@@ -153,7 +153,7 @@ export function CreativeSetTabs({
       role="tablist"
       aria-label="Creative sets"
     >
-      {sets.map((set, index) => {
+      {sets.map((set) => {
         const isSelected = set.id === selectedSetId
         const tabIndex = isSelected ? 0 : -1
 

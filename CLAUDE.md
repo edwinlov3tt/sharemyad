@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+CURRENT YEAR: 2025
 
 ## Project Overview
 
@@ -23,6 +24,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Region**: us-east-2
 **Supabase URL**: `https://gnurilaiddffxfjujegu.supabase.co`
 **Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdudXJpbGFpZGRmZnhmanVqZWd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3NDk3MzksImV4cCI6MjA3ODMyNTczOX0.FSjyDjyxSBzDT6vUYGhgwJ946noSbeUkXIvuTlYoSYw`
+**Service Role Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdudXJpbGFpZGRmZnhmanVqZWd1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2Mjc0OTczOSwiZXhwIjoyMDc4MzI1NzM5fQ.pC0AgwbagH1TebV8xTa_ICxr9wBwUGDr7TZBKvQFnI4`
 
 **Environment Variables**:
 ```
@@ -424,5 +426,58 @@ When violating "Solve Today's Problems" or "Minimal Abstraction":
 ## Active Technologies
 - TypeScript 5.3+ (frontend + edge functions), Node.js 20+ (build tooling) (001-upload-asset-processing)
 
+## Implementation Patterns (001-upload-asset-processing)
+
+### Frontend Architecture
+- **State Management**: TanStack Query for server state, React useState for local UI state
+- **File Uploads**: react-dropzone with drag-drop, concurrent upload (max 10 parallel)
+- **Validation**: Client-side validation with externalized standards (validation-standards.json)
+- **Thumbnails**: IntersectionObserver lazy loading with 200px root margin
+- **Accessibility**: All interactive elements have ARIA labels, keyboard navigation, live regions
+
+### Backend Architecture
+- **Database**: Supabase PostgreSQL with Row Level Security (RLS)
+- **Storage**: Supabase Storage for uploads, auto-managed signed URLs
+- **Edge Functions**: Deno-based for zip extraction, thumbnail generation, malware scanning
+- **Anonymous Uploads**: 7-day expiration, no authentication required for MVP
+
+### Key Files
+- `frontend/src/services/uploadService.ts` - Upload orchestration, session management
+- `frontend/src/services/validationService.ts` - Client-side validation against IAB/platform standards
+- `frontend/src/config/validation-standards.json` - Externalized validation rules with sources
+- `supabase/functions/process-upload/` - Edge function for server-side processing
+
+### Database Schema
+- `upload_sessions` - Session tracking with anonymous support
+- `creative_sets` - A/B/C variant groupings
+- `creative_assets` - Individual files with validation status
+- `folder_structure` - Preserved folder hierarchy from zips
+- `thumbnails` - Generated preview images (300x180)
+
+### Common Patterns
+```typescript
+// Anonymous upload session
+const session = await createUploadSession('single', 1, fileSize)
+// session.is_anonymous = true, expires in 7 days
+
+// Validation against standards
+const result = validateDimensions(width, height, fileSizeKB, fileType)
+// Returns: { status: 'valid'|'warning'|'invalid', message, standard? }
+
+// Concurrent upload with progress
+await uploadFiles(files, {
+  onProgress: (filename, progress) => updateUI(filename, progress),
+  onFileComplete: (filename, asset) => addToGrid(asset),
+  maxConcurrent: 10
+})
+```
+
+### Known Issues & Workarounds
+1. **Trigger Ambiguity**: Database triggers must use qualified column names (e.g., `fs.id` not `id`) when joining tables with same column names
+2. **RLS with Anonymous**: RLS policies use `true` for public access tables, anonymous sessions tracked via `is_anonymous` flag
+3. **Import.meta.env**: Requires `src/vite-env.d.ts` type definitions for TypeScript
+
 ## Recent Changes
 - 001-upload-asset-processing: Added TypeScript 5.3+ (frontend + edge functions), Node.js 20+ (build tooling)
+- 2025-11-26: Phase 9 complete - All 143 tasks COMPLETED, uploads working, axe-core accessibility audit passed
+- All credentials to access services thorugh CLI or otherwise will be/should be stored in /Users/edwinlovettiii/sharemyad/.env - refer to it when using wrangler, supabase, cloudflare etc.. if a credential isnt there that you need to access a service to complete a task make that known and set the variables in the .env file I will add them in.
