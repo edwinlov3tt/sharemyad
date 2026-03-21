@@ -3,6 +3,7 @@
 export type DesignStatus = 'approved' | 'changes' | 'pending'
 export type DesignCategory = 'Display' | 'Social' | 'Video' | 'Email' | 'CTV'
 export type WorkspaceView = 'grid' | 'detail'
+export type ContentLayout = 'grid' | 'list'
 
 export interface DesignVersion {
   id: string
@@ -23,6 +24,8 @@ export interface DesignSet {
   category: DesignCategory
   format: string
   createdAt: string
+  fileSize?: string
+  sharedBy?: string
   versions: DesignVersion[]
 }
 

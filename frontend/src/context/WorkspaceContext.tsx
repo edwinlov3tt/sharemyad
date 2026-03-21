@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import type { ReactNode } from 'react'
-import type { DesignSet, Folder, FilterState, WorkspaceView } from '../types/workspace.types'
+import type { DesignSet, Folder, FilterState, WorkspaceView, ContentLayout } from '../types/workspace.types'
 import { MOCK_DESIGN_SETS, MOCK_FOLDERS } from '../data/mockWorkspaceData'
 
 interface WorkspaceState {
@@ -10,13 +10,17 @@ interface WorkspaceState {
   selectedFolderId: string | null
   activeDesignSet: DesignSet | null
   view: WorkspaceView
+  contentLayout: ContentLayout
   filters: FilterState
   showUploadModal: boolean
+  sidebarSection: string
   selectFolder: (folderId: string | null) => void
   openDesignSet: (set: DesignSet) => void
   closeDesignSet: () => void
   setFilter: (filter: Partial<FilterState>) => void
   toggleUploadModal: () => void
+  setSidebarSection: (section: string) => void
+  setContentLayout: (layout: ContentLayout) => void
 }
 
 const WorkspaceContext = createContext<WorkspaceState | null>(null)
@@ -38,8 +42,10 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
   const [activeDesignSet, setActiveDesignSet] = useState<DesignSet | null>(null)
   const [view, setView] = useState<WorkspaceView>('grid')
+  const [contentLayout, setContentLayout] = useState<ContentLayout>('grid')
   const [filters, setFilters] = useState<FilterState>({ status: 'all', category: 'all', search: '' })
   const [showUploadModal, setShowUploadModal] = useState(false)
+  const [sidebarSection, setSidebarSection] = useState('home')
 
   const selectFolder = useCallback((folderId: string | null) => {
     setSelectedFolderId(folderId)
@@ -63,9 +69,16 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     setShowUploadModal(prev => !prev)
   }, [])
 
+  const handleSetSidebarSection = useCallback((section: string) => {
+    setSidebarSection(section)
+  }, [])
+
+  const handleSetContentLayout = useCallback((layout: ContentLayout) => {
+    setContentLayout(layout)
+  }, [])
+
   const filteredDesignSets = useMemo(() => {
     return MOCK_DESIGN_SETS.filter(set => {
-      // Folder filter
       if (selectedFolderId) {
         const folder = findFolder(MOCK_FOLDERS, selectedFolderId)
         if (folder) {
@@ -73,14 +86,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
           if (!validIds.includes(set.folderId)) return false
         }
       }
-      // Status filter
       if (filters.status !== 'all') {
         const latestStatus = set.versions[set.versions.length - 1].status
         if (latestStatus !== filters.status) return false
       }
-      // Category filter
       if (filters.category !== 'all' && set.category !== filters.category) return false
-      // Search
       if (filters.search) {
         const q = filters.search.toLowerCase()
         if (!set.name.toLowerCase().includes(q)) return false
@@ -96,13 +106,17 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     selectedFolderId,
     activeDesignSet,
     view,
+    contentLayout,
     filters,
     showUploadModal,
+    sidebarSection,
     selectFolder,
     openDesignSet,
     closeDesignSet,
     setFilter,
     toggleUploadModal,
+    setSidebarSection: handleSetSidebarSection,
+    setContentLayout: handleSetContentLayout,
   }
 
   return (

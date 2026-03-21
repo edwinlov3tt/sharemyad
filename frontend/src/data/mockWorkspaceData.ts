@@ -54,6 +54,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Display',
     format: '1200x628',
     createdAt: 'Mar 12, 2026',
+    fileSize: '250 MB',
+    sharedBy: 'Adrian Carter',
     versions: [
       { id: 'v1', label: 'v1 — Initial', status: 'changes', date: 'Mar 12', note: 'Needs warmer tones per client feedback', previewColor: '#e8eff8', previewAccent: '#3765f6', tagline: 'Escape to Paradise', reviewer: 'Sarah M.' },
       { id: 'v2', label: 'v2 — Color Update', status: 'changes', date: 'Mar 13', note: 'Typography too small on mobile', previewColor: '#f0e8f8', previewAccent: '#6c5ce7', tagline: 'Your Next Getaway', reviewer: 'Sarah M.' },
@@ -67,6 +69,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Social',
     format: '1080x1080',
     createdAt: 'Mar 10, 2026',
+    fileSize: '325 MB',
+    sharedBy: 'Bella Thompson',
     versions: [
       { id: 'v1', label: 'v1 — Draft', status: 'changes', date: 'Mar 10', note: 'Logo placement off-brand', previewColor: '#f5f5f5', previewAccent: '#ff6b35', tagline: 'Power Redefined', reviewer: 'Amy L.' },
       { id: 'v2', label: 'v2 — Brand Aligned', status: 'pending', date: 'Mar 14', note: 'Awaiting client review', previewColor: '#eef0f8', previewAccent: '#e94560', tagline: 'Next-Gen Energy', reviewer: null },
@@ -79,6 +83,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Display',
     format: '300x250 + 728x90',
     createdAt: 'Mar 8, 2026',
+    fileSize: '340 MB',
+    sharedBy: 'Daniel Foster',
     versions: [
       { id: 'v1', label: 'v1 — Concept A', status: 'pending', date: 'Mar 8', note: 'Softer approach — lifestyle imagery', previewColor: '#f8f0e8', previewAccent: '#d4a574', tagline: 'Naturally Yours', reviewer: null },
       { id: 'v2', label: 'v2 — Concept B', status: 'pending', date: 'Mar 8', note: 'Bold approach — product-focused', previewColor: '#e8f0e8', previewAccent: '#22c55e', tagline: 'Pure Botanicals', reviewer: null },
@@ -93,6 +99,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Video',
     format: '1920x1080',
     createdAt: 'Mar 14, 2026',
+    fileSize: '221 MB',
+    sharedBy: 'Emily Richardson',
     versions: [
       { id: 'v1', label: 'v1 — High Energy', status: 'approved', date: 'Mar 14', note: 'Strong performance angle', previewColor: '#f8e8e8', previewAccent: '#ef4444', tagline: 'No Limits', reviewer: 'Coach Dan' },
     ],
@@ -104,6 +112,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Email',
     format: '600x200',
     createdAt: 'Mar 6, 2026',
+    fileSize: '992 MB',
+    sharedBy: 'Samuel Hayes',
     versions: [
       { id: 'v1', label: 'v1 — Warm Glow', status: 'changes', date: 'Mar 6', note: "Too dark — can't read on mobile", previewColor: '#f8f4e8', previewAccent: '#f59e0b', tagline: 'Light the Season', reviewer: 'Priya S.' },
       { id: 'v2', label: 'v2 — Bright Edit', status: 'approved', date: 'Mar 9', note: 'Perfect. Approved for send.', previewColor: '#faf8f0', previewAccent: '#c4940a', tagline: 'Warmth Delivered', reviewer: 'Priya S.' },
@@ -116,6 +126,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'CTV',
     format: '1920x1080',
     createdAt: 'Mar 15, 2026',
+    fileSize: '180 MB',
+    sharedBy: 'Adrian Carter',
     versions: [
       { id: 'v1', label: 'v1 — Trust Theme', status: 'pending', date: 'Mar 15', note: 'Initial concept — family focus', previewColor: '#eaf0f8', previewAccent: '#3765f6', tagline: 'Protection You Trust', reviewer: null },
       { id: 'v2', label: 'v2 — Modern Take', status: 'pending', date: 'Mar 16', note: 'Sleeker, younger demographic', previewColor: '#eeeaf8', previewAccent: '#6c5ce7', tagline: 'Insure Smarter', reviewer: null },
@@ -129,6 +141,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Social',
     format: '1080x1080',
     createdAt: 'Mar 3, 2026',
+    fileSize: '145 MB',
+    sharedBy: 'Bella Thompson',
     versions: [
       { id: 'v1', label: 'v1 — Soft Pastels', status: 'approved', date: 'Mar 3', note: 'Final approved version', previewColor: '#f8eef4', previewAccent: '#e94560', tagline: 'Special Discounts for Women', reviewer: 'Sarah M.' },
     ],
@@ -140,6 +154,8 @@ export const MOCK_DESIGN_SETS: DesignSet[] = [
     category: 'Display',
     format: '300x250',
     createdAt: 'Mar 1, 2026',
+    fileSize: '88 MB',
+    sharedBy: 'Daniel Foster',
     versions: [
       { id: 'v1', label: 'v1 — Green Theme', status: 'approved', date: 'Mar 1', note: 'Ready for deployment', previewColor: '#e8f8e8', previewAccent: '#22c55e', tagline: 'Lawn Care Services', reviewer: 'Marcus R.' },
       { id: 'v2', label: 'v2 — Seasonal Update', status: 'pending', date: 'Mar 18', note: 'Spring seasonal variant', previewColor: '#f0f8e8', previewAccent: '#70b845', tagline: 'Spring Fresh Lawns', reviewer: null },

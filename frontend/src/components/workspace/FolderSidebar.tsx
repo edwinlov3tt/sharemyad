@@ -20,29 +20,22 @@ function FolderItem({ folder, depth = 0 }: { folder: Folder; depth?: number }) {
           alignItems: 'center',
           gap: 6,
           width: '100%',
-          padding: `5px 10px 5px ${10 + depth * 18}px`,
-          background: isSelected ? t.color.brandBlue + '0a' : 'transparent',
+          padding: `6px 10px 6px ${10 + depth * 16}px`,
+          background: isSelected ? `${t.color.brandBlue}0a` : 'transparent',
           border: 'none',
           borderRadius: 6,
           cursor: 'pointer',
           fontSize: t.text.bodySm,
-          fontWeight: isSelected ? t.weight.semibold : t.weight.medium,
-          color: isSelected ? t.color.brandBlue : t.color.fgMuted,
+          fontWeight: isSelected ? t.weight.semibold : t.weight.regular,
+          color: isSelected ? t.color.brandBlue : t.color.fgDefault,
           textAlign: 'left',
           transition: `all ${t.transition.base}`,
-          borderLeft: isSelected ? `2px solid ${t.color.brandBlue}` : '2px solid transparent',
         }}
         onMouseEnter={e => {
-          if (!isSelected) {
-            e.currentTarget.style.background = t.color.bgMuted
-            e.currentTarget.style.color = t.color.fgDefault
-          }
+          if (!isSelected) e.currentTarget.style.background = t.color.bgMuted
         }}
         onMouseLeave={e => {
-          if (!isSelected) {
-            e.currentTarget.style.background = 'transparent'
-            e.currentTarget.style.color = t.color.fgMuted
-          }
+          if (!isSelected) e.currentTarget.style.background = 'transparent'
         }}
       >
         {hasChildren && (
@@ -63,8 +56,14 @@ function FolderItem({ folder, depth = 0 }: { folder: Folder; depth?: number }) {
           </span>
         )}
         {!hasChildren && <span style={{ width: 10, flexShrink: 0 }} />}
-        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0, opacity: 0.45 }}>
-          <path d="M2 4C2 3.44772 2.44772 3 3 3H6.5L8 5H13C13.5523 5 14 5.44772 14 6V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V4Z" stroke="currentColor" strokeWidth="1.2" fill="none" />
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style={{ flexShrink: 0 }}>
+          <path
+            d="M2 4C2 3.44772 2.44772 3 3 3H6.5L8 5H13C13.5523 5 14 5.44772 14 6V12C14 12.5523 13.5523 13 13 13H3C2.44772 13 2 12.5523 2 12V4Z"
+            fill={isSelected ? t.color.brandBlue : t.color.fgMuted}
+            opacity={isSelected ? 0.2 : 0.15}
+            stroke={isSelected ? t.color.brandBlue : t.color.fgMuted}
+            strokeWidth="0.8"
+          />
         </svg>
         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {folder.name}
@@ -81,14 +80,17 @@ function FolderItem({ folder, depth = 0 }: { folder: Folder; depth?: number }) {
   )
 }
 
-export function FolderSidebar() {
-  const { folders } = useWorkspace()
+export function FolderPanel() {
+  const { folders, sidebarSection } = useWorkspace()
+  const isOpen = sidebarSection === 'folders'
+
+  if (!isOpen) return null
 
   return (
     <aside
       style={{
-        width: 200,
-        minWidth: 200,
+        width: 220,
+        minWidth: 220,
         height: '100%',
         background: t.color.bgDefault,
         borderRight: `1px solid ${t.color.borderDefault}`,
@@ -97,18 +99,52 @@ export function FolderSidebar() {
         overflow: 'hidden',
       }}
     >
-      {/* Section label */}
+      {/* Header */}
       <div
         style={{
           padding: `${t.space[4]}px ${t.space[4]}px ${t.space[2]}px`,
-          fontSize: t.text.overline,
-          fontWeight: t.weight.semibold,
-          color: t.color.fgMuted,
-          textTransform: 'uppercase',
-          letterSpacing: '0.8px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}
       >
-        Folders
+        <span
+          style={{
+            fontSize: t.text.bodySm,
+            fontWeight: t.weight.semibold,
+            color: t.color.fgDefault,
+          }}
+        >
+          All Folders
+        </span>
+        <button
+          title="New folder"
+          style={{
+            width: 24,
+            height: 24,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: 'none',
+            background: 'transparent',
+            borderRadius: 6,
+            cursor: 'pointer',
+            color: t.color.fgMuted,
+            transition: `all ${t.transition.base}`,
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = t.color.bgMuted
+            e.currentTarget.style.color = t.color.fgDefault
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent'
+            e.currentTarget.style.color = t.color.fgMuted
+          }}
+        >
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+            <path d="M6 1V11M1 6H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+          </svg>
+        </button>
       </div>
 
       {/* Folder tree */}
@@ -118,37 +154,41 @@ export function FolderSidebar() {
         ))}
       </div>
 
-      {/* Labels section */}
+      {/* Storage meter */}
       <div
         style={{
-          padding: `${t.space[3]}px ${t.space[4]}px`,
+          padding: `${t.space[4]}px`,
           borderTop: `1px solid ${t.color.borderDefault}`,
         }}
       >
-        <button
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+          <span style={{ fontSize: t.text.caption, fontWeight: t.weight.medium, color: t.color.fgDefault }}>
+            Storage
+          </span>
+          <span style={{ fontSize: t.text.caption, color: t.color.fgMuted }}>
+            52%
+          </span>
+        </div>
+        <div
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'none',
-            border: 'none',
-            color: t.color.fgMuted,
-            fontSize: t.text.overline,
-            fontWeight: t.weight.semibold,
-            cursor: 'pointer',
-            padding: 0,
-            textTransform: 'uppercase',
-            letterSpacing: '0.8px',
-            transition: `color ${t.transition.base}`,
+            height: 4,
+            borderRadius: 2,
+            background: t.color.bgMuted,
+            overflow: 'hidden',
           }}
-          onMouseEnter={e => { e.currentTarget.style.color = t.color.fgDefault }}
-          onMouseLeave={e => { e.currentTarget.style.color = t.color.fgMuted }}
         >
-          <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
-            <path d="M6 1V11M1 6H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
-          Labels
-        </button>
+          <div
+            style={{
+              width: '52%',
+              height: '100%',
+              borderRadius: 2,
+              background: `linear-gradient(90deg, ${t.color.brandBlue}, ${t.color.brandBlue}cc)`,
+            }}
+          />
+        </div>
+        <div style={{ fontSize: t.text.micro, color: t.color.fgMuted, marginTop: 4 }}>
+          5.2 GB of 10 GB used
+        </div>
       </div>
     </aside>
   )
